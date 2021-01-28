@@ -1,0 +1,30 @@
+$script = <<-SCRIPT
+  # clear cache
+  apt-get clean
+  # disable swap
+  swapoff -a
+  sed -e '/.* swap.*/ s/^#*/#/' -i /etc/fstab
+  # zero out drive
+  dd if=/dev/zero of=/tmp/empty; rm -f /tmp/empty
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  # hypervisor
+  config.vm.provider "virtualbox" do |vmp|
+    vmp.memory = 1024
+    vmp.cpus = 2
+  end
+
+  # base OS
+  config.vm.box = "generic/ubuntu1804"
+
+  # machine specific
+  config.vm.hostname = "baseubu18.vagrant"
+  config.vm.provision "shell", path: "../../shared/scripts/bootubu18.sh"
+  config.vm.provision "shell", inline: $script
+  # transfer ids change script and append to rc.local for execution on start-up
+  config.vm.provision "file", source: "../../shared/scripts/set_vagrant_ids.sh", destination: "/home/vagrant/set_vagrant_ids.sh"
+  config.vm.provision "shell", inline: "cat /home/vagrant/set_vagrant_ids.sh >> /etc/rc.local"
+  config.vm.provision "shell", inline: "chmod +x /etc/rc.local"
+
+end

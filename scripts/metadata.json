@@ -1,0 +1,7 @@
+{
+  "name": "shared-scripts",
+  "version": "0.2.0",
+  "author": "(c) Devopera",
+  "summary": "Common scripts used to bootstrap vagrant VMs",
+  "license": "Apache-2.0"
+}
