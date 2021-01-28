@@ -1,0 +1,32 @@
+# machine-specific config variables
+hostname="c1-node2"
+ip="172.16.94.12"
+windows_adaptor_name="VirtualBox Host-Only Ethernet Adapter #7"
+role="k8-node"
+environ=""
+cluster=""
+
+Vagrant.configure("2") do |config|
+    #Hypervisor
+    config.vm.provider "virtualbox" do |vmp|
+        vmp.memory = 2048
+        vmp.cpus = 2
+    # insert platform-specific hack to stop Windows creating dozens of new network adaptors
+    if Vagrant::Util::Platform.windows? then
+        vmp.customize ["modifyvm", :id, "--nic2", "hostonly", "--cableconnected2", "on", "--hostonlyadapter2", windows_adaptor_name]
+    end
+  end
+
+  # base OS
+  config.vm.box = "baseubu16"
+
+  # machine specific
+  config.vm.hostname = hostname
+  config.vm.base_address = ""
+  config.vm.network "private_network", ip: ip
+  # script to install Puppet
+  config.vm.provision "shell", path: "../../../scripts/bootubu16.sh"
+  config.vm.provision "shell", path: "../../../scripts/k8hostfile.sh"
+  # transfer ids change script and append to rc.local for execution on start-up
+  config.vm.provision "file", source: "../../../scripts/set_vagrant_ids.sh", destination: "/home/vagrant/set_vagrant_ids.sh"
+end
